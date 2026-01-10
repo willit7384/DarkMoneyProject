@@ -20,7 +20,6 @@ grants = []
 officers = []
 investments = []
 asset_sales = []
-assets = []
 
 # ================= HELPERS =================
 
@@ -230,7 +229,6 @@ dfs = {
     "officers": pd.DataFrame(officers),
     "investments": pd.DataFrame(investments),
     "asset_sales": pd.DataFrame(asset_sales)
-    ,"assets": pd.DataFrame(assets)
 }
 
 # ================= POSTGRES LOAD =================
