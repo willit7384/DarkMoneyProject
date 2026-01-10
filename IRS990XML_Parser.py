@@ -3,6 +3,7 @@ import re
 import xml.etree.ElementTree as ET
 import pandas as pd
 import dpf
+import time
 
 # ================= CONFIG =================
 
@@ -19,6 +20,7 @@ grants = []
 officers = []
 investments = []
 asset_sales = []
+assets = []
 
 # ================= HELPERS =================
 
@@ -52,6 +54,14 @@ def parse_filename_metadata(filename):
 
 parsed_files = load_parsed_files()
 xml_count = 0
+total_xml_files = sum(
+    1
+    for _r, _d, fs in os.walk(XML_FOLDER)
+    for f in fs
+    if f.lower().endswith(".xml") and os.path.join(_r, f) not in parsed_files
+)
+print(f"Found {total_xml_files} XML files to process (skipping {len(parsed_files)} already parsed)")
+start_time = time.time()
 
 for root_dir, _, files in os.walk(XML_FOLDER):
     for filename in files:
@@ -63,7 +73,17 @@ for root_dir, _, files in os.walk(XML_FOLDER):
             continue
 
         xml_count += 1
-
+        # progress info: count, percent, rate, ETA
+        if total_xml_files:
+            elapsed = time.time() - start_time
+            pct = (xml_count / total_xml_files) * 100
+            rate = (xml_count / elapsed) if elapsed > 0 else 0
+            remaining = max(0, total_xml_files - xml_count)
+            eta = (remaining / rate) if rate > 0 else None
+            eta_str = f" ETA {eta:.1f}s" if eta is not None else ""
+            print(f"Parsing {xml_count}/{total_xml_files} ({pct:.1f}%): {file_path} | {elapsed:.1f}s elapsed | {rate:.2f} f/s{eta_str}")
+        else:
+            print(f"Parsing {xml_count}: {file_path}")
         try:
             tree = ET.parse(file_path)
             root = strip_ns(tree.getroot())
@@ -141,61 +161,61 @@ for root_dir, _, files in os.walk(XML_FOLDER):
                     "source_file": filename
                 })
 
-            # Adding to your existing code
+            # # Adding to your existing code
 
-            # ---------- SCHEDULE A ----------
-            for a in root.findall(".//IRS990ScheduleA"):
-                foundations.append({
-                    "ein": ein,
-                    "organization": org,
-                    "public_support_total": a.findtext("PublicSupportTotal170Amt"),
-                    "total_gifts": a.findtext(".//TotalAmt"),
-                    "current_year_gifts": a.findtext(".//CurrentTaxYearAmt"),
-                    "gross_investment_income": a.findtext(".//GrossInvestmentIncome170Grp/TotalAmt"),
-                    "tax_year": tax_year,
-                    "source_file": filename
-                })
+            # # ---------- SCHEDULE A ----------
+            # for a in root.findall(".//IRS990ScheduleA"):
+            #     foundations.append({
+            #         "ein": ein,
+            #         "organization": org,
+            #         "public_support_total": a.findtext("PublicSupportTotal170Amt"),
+            #         "total_gifts": a.findtext(".//TotalAmt"),
+            #         "current_year_gifts": a.findtext(".//CurrentTaxYearAmt"),
+            #         "gross_investment_income": a.findtext(".//GrossInvestmentIncome170Grp/TotalAmt"),
+            #         "tax_year": tax_year,
+            #         "source_file": filename
+            #     })
 
-            # ---------- SCHEDULE B ----------
-            for b in root.findall(".//IRS990ScheduleB"):
-                contributors = b.findall(".//ContributorInformationGrp")
-                for c in contributors:
-                    # Check for restricted info if necessary
-                    if c.findtext("ContributorNum") != "RESTRICTED":
-                        grants.append({
-                            "ein": ein,
-                            "organization": org,
-                            "contributor": c.findtext("ContributorBusinessName/BusinessNameLine1"),
-                            "total_contributions": c.findtext("TotalContributionsAmt"),
-                            "tax_year": tax_year,
-                            "source_file": filename
-                        })
+            # # ---------- SCHEDULE B ----------
+            # for b in root.findall(".//IRS990ScheduleB"):
+            #     contributors = b.findall(".//ContributorInformationGrp")
+            #     for c in contributors:
+            #         # Check for restricted info if necessary
+            #         if c.findtext("ContributorNum") != "RESTRICTED":
+            #             grants.append({
+            #                 "ein": ein,
+            #                 "organization": org,
+            #                 "contributor": c.findtext("ContributorBusinessName/BusinessNameLine1"),
+            #                 "total_contributions": c.findtext("TotalContributionsAmt"),
+            #                 "tax_year": tax_year,
+            #                 "source_file": filename
+            #             })
 
-            # ---------- SCHEDULE D ----------
-            for d in root.findall(".//IRS990ScheduleD"):
-                assets.append({
-                    "ein": ein,
-                    "organization": org,
-                    "total_assets": d.findtext("TotalBookValueLandBuildingsAmt"),
-                    "total_revenue": d.findtext("TotalRevenuePerForm990Amt"),
-                    "total_expenses": d.findtext("TotExpnsEtcAuditedFinclStmtAmt"),
-                    "tax_year": tax_year,
-                    "source_file": filename
-                })
+            # # ---------- SCHEDULE D ----------
+            # for d in root.findall(".//IRS990ScheduleD"):
+            #     assets.append({
+            #         "ein": ein,
+            #         "organization": org,
+            #         "total_assets": d.findtext("TotalBookValueLandBuildingsAmt"),
+            #         "total_revenue": d.findtext("TotalRevenuePerForm990Amt"),
+            #         "total_expenses": d.findtext("TotExpnsEtcAuditedFinclStmtAmt"),
+            #         "tax_year": tax_year,
+            #         "source_file": filename
+            #     })
 
-            # ---------- SCHEDULE I ----------
-            for i in root.findall(".//IRS990ScheduleI"):
-                recipient_data = i.findall(".//RecipientTable")
-                for r in recipient_data:
-                    grants.append({
-                        "ein": ein,
-                        "organization": org,
-                        "recipient": r.findtext("RecipientBusinessName/BusinessNameLine1Txt"),
-                        "grant_amount": r.findtext("CashGrantAmt"),
-                        "purpose": r.findtext("PurposeOfGrantTxt"),
-                        "tax_year": tax_year,
-                        "source_file": filename
-                    })
+            # # ---------- SCHEDULE I ----------
+            # for i in root.findall(".//IRS990ScheduleI"):
+            #     recipient_data = i.findall(".//RecipientTable")
+            #     for r in recipient_data:
+            #         grants.append({
+            #             "ein": ein,
+            #             "organization": org,
+            #             "recipient": r.findtext("RecipientBusinessName/BusinessNameLine1Txt"),
+            #             "grant_amount": r.findtext("CashGrantAmt"),
+            #             "purpose": r.findtext("PurposeOfGrantTxt"),
+            #             "tax_year": tax_year,
+            #             "source_file": filename
+            #         })
 
             mark_parsed(file_path)
 
@@ -210,6 +230,7 @@ dfs = {
     "officers": pd.DataFrame(officers),
     "investments": pd.DataFrame(investments),
     "asset_sales": pd.DataFrame(asset_sales)
+    ,"assets": pd.DataFrame(assets)
 }
 
 # ================= POSTGRES LOAD =================
