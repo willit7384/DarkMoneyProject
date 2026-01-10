@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
+import type { Grant } from "../types"
 
 export default function Grants() {
-  const [grants, setGrants] = useState<any[]>([]);
+  const [grants, setGrants] = useState<Grant[]>([]);
 
   useEffect(() => {
     api.get("/grants?min_amount=10000")

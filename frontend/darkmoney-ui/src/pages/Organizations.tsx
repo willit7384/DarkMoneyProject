@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import { Link } from "react-router-dom";
+import type { Organization } from "../types"
 
 export default function Organizations() {
-  const [orgs, setOrgs] = useState<any[]>([]);
+  const [orgs, setOrgs] = useState<Organization[]>([]);
 
   useEffect(() => {
     api.get("/organizations?limit=100")

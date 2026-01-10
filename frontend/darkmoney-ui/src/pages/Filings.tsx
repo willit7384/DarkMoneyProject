@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/client";
+import type { Filing } from "../types"
 
 export default function Filings() {
   const { ein } = useParams();
-  const [filings, setFilings] = useState<any[]>([]);
+  const [filings, setFilings] = useState<Filing[]>([]);
+
 
   useEffect(() => {
     api.get(`/filings/${ein}`)
@@ -25,7 +27,7 @@ export default function Filings() {
         </thead>
         <tbody>
           {filings.map(f => (
-            <tr key={f.filing_id}>
+            <tr key={f.ein}>
               <td>{f.tax_year}</td>
               <td>${f.total_revenue?.toLocaleString()}</td>
               <td>${f.admin_expense?.toLocaleString()}</td>
