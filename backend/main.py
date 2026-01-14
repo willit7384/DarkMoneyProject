@@ -1,7 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
+from dotenv import load_dotenv
 import os
+
+# Make it work regardless of where uvicorn is started from
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # = backend folder
+load_dotenv(os.path.join(BASE_DIR, "creds.env"))
 
 app = FastAPI(title="Dark Money API")
 
@@ -15,13 +20,14 @@ app.add_middleware(
 )
 
 # ---- Database connection ----
+
 def get_conn():
     return psycopg2.connect(
-        host="localhost",
-        database="nonprofit_990",
-        user="postgres",
-        password="OmniWolf42!",
-        port=5432
+        host=os.getenv("DB_HOST", "localhost"),
+        database=os.getenv("DB_NAME", "nonprofit_990"),
+        user=os.getenv("DB_USER", "postgres"),
+        password=os.getenv("DB_PASSWORD"),          # no default — fail if missing
+        port=int(os.getenv("DB_PORT", "5432")),
     )
 
 # ---- Health check ----
