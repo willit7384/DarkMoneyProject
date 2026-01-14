@@ -9,7 +9,7 @@ export default function MainLayout() {
         <nav style={{ display: "flex", gap: "1rem" }}>
           <NavLink to="/">Home</NavLink>
           <NavLink to="/donors">Donors</NavLink>
-          <NavLink to="/nonprofits">Nonprofits</NavLink>
+          <NavLink to="/recipients">Recipients</NavLink>
           <NavLink to="/topics">Topics</NavLink>
         </nav>
       </header>

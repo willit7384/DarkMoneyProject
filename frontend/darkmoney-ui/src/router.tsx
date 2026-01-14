@@ -4,8 +4,8 @@ import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Donors from "./pages/Donors";
 import DonorDetail from "./pages/DonorDetail";
-import Nonprofits from "./pages/Nonprofits";
-import NonprofitDetail from "./pages/NonprofitDetail";
+import Recipients from "./pages/Recipients";
+import RecipientDetail from "./pages/RecipientDetail";
 import Topics from "./pages/Topics";
 import TopicDetail from "./pages/TopicDetail";
 import StatePage from "./pages/State";
@@ -22,8 +22,8 @@ export const router = createBrowserRouter([
       { path: "donors", element: <Donors /> },
       { path: "donors/:donorName", element: <DonorDetail /> },
 
-      { path: "nonprofits", element: <Nonprofits /> },
-      { path: "nonprofits/:ein", element: <NonprofitDetail /> },
+      { path: "recipients", element: <Recipients /> },
+      { path: "recipients/:recipientName", element: <RecipientDetail /> },
 
       { path: "topics", element: <Topics /> },
       { path: "topics/:ideology", element: <TopicDetail /> },

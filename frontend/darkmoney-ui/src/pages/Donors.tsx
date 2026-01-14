@@ -11,39 +11,68 @@ export default function Donors() {
   useEffect(() => {
     fetchTopDonors()
       .then(setDonors)
-      .catch(() => setError("Failed to load donors"))
+      .catch(() => setError("Failed to load top donors. Please try again later."))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p>Loading donors…</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading top donors...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
 
   return (
-    <div>
-      <h2>Top Donors</h2>
+    <div className="page-container">
+      <header className="page-header">
+        <h1>Top Donors</h1>
+        <p className="subtitle">
+          Organizations giving the most in grants (based on available 990 data)
+        </p>
+      </header>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Donor</th>
-            <th>Total Given</th>
-            <th># Transactions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {donors.map((d) => (
-            <tr key={d.donor_name}>
-              <td>
-                <Link to={`/donors/${encodeURIComponent(d.donor_name)}`}>
-                  {d.donor_name}
-                </Link>
-              </td>
-              <td>${d.total_grants.toLocaleString()}</td>
-              <td>{d.grant_count}</td>
+      <div className="table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Donor Organization</th>
+              <th className="numeric">Total # of Grants</th>
+              <th className="numeric">Total $ Given</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {donors.map((donor) => (
+              <tr key={donor.donor_name} className="hover-row">
+                <td className="name-cell">
+                  <Link to={`/donors/${encodeURIComponent(donor.donor_name)}`}>
+                    {donor.donor_name}
+                  </Link>
+                </td>
+                <td className="numeric">
+                  {donor.total_grants.toLocaleString("en-US", {
+                    minimumFractionDigits: 0,
+                  })}
+                </td>
+                <td className="numeric">${donor.grant_count.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {donors.length === 0 && (
+          <p className="no-data">No donor data available at this time.</p>
+        )}
+      </div>
+
+      <footer className="table-footer">
+        Showing top {donors.length} donors
+      </footer>
     </div>
   );
 }
