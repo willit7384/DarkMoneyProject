@@ -2,36 +2,40 @@ import requests
 import pandas as pd
 import dpf  # your personal data pipeline functions
 
+#$#
+# Description: An interactive tool to explore FEC campaign finance data via their API.
+#$#
+
 # === CONFIG ===
-API_KEY = "BGOI53H95vQ9k0qFNKj1mcVYwyhaji34iWn9WoRi"  # Keep this safe in real projects!
+API_KEY = "BGOI53H95vQ9k0qFNKj1mcVYwyhaji34iWn9WoRi"  # Need to hide this! FIX IT
 BASE_URL = "https://api.open.fec.gov/v1"
 
-def search_committees():
+def search_committees(): 
     """Interactive search for committees/candidates"""
     print("\n=== Search FEC Committees ===\n")
     query = input("Enter candidate or committee name (e.g., Ilhan Omar, Trump, Biden): ").strip()
     if not query:
         print("No query entered.")
         return None
-
+# === SEARCH REQUEST ===
     url = f"{BASE_URL}/committees/"
     params = {
         "api_key": API_KEY,
         "q": query.upper(),
         "per_page": 50
     }
-
+# === API REQUEST ===
     print(f"\nSearching for '{query}'...")
     r = requests.get(url, params=params)
     if r.status_code != 200:
         print(f"API Error: {r.status_code} - {r.text}")
         return None
-
+# === PROCESS RESULTS ===
     results = r.json()["results"]
     if not results:
         print("No committees found.")
         return None
-
+# === DISPLAY RESULTS ===
     df = pd.DataFrame(results)
     display_cols = ["committee_id", "name", "candidate_ids", "party", "state", "committee_type"]
     print("\nFound committees:")
@@ -41,12 +45,12 @@ def search_committees():
     choice = input("\nEnter the committee_id you want to investigate (or press Enter to cancel): ").strip()
     if not choice:
         return None
-
+# === VALIDATE SELECTION ===
     selected = df[df["committee_id"] == choice]
     if selected.empty:
         print("Invalid committee_id.")
         return None
-
+# === RETURN SELECTION ===
     print(f"\nSelected: {selected.iloc[0]['name']} ({choice})")
     return choice
 
@@ -59,32 +63,32 @@ def fetch_all_contributions(committee_id):
     page = 1
 
     while True:
-        params = {
-            "api_key": API_KEY,
-            "committee_id": committee_id,
+        params = { #=== API PARAMETERS ===
+            "api_key": API_KEY, 
+            "committee_id": committee_id, 
             "per_page": 100,
             "page": page,
             "sort": "-contribution_receipt_date"  # newest first (optional)
         }
-        r = requests.get(url, params=params)
+        r = requests.get(url, params=params) 
         if r.status_code != 200:
             print(f"Error on page {page}: {r.status_code} - {r.text}")
             break
 
-        results = r.json()["results"]
+        results = r.json()["results"] #=== EXTRACT RESULTS ===
         if not results:
             print(f"No more data (finished at page {page-1}).")
             break
 
-        all_data.extend(results)
+        all_data.extend(results) #=== AGGREGATE DATA ===
         print(f"Fetched page {page} ({len(results)} records, total so far: {len(all_data)})")
         page += 1
 
-    if not all_data:
+    if not all_data: #=== NO DATA CHECK ===
         print("No contributions found.")
         return pd.DataFrame()
 
-    df = pd.DataFrame(all_data)
+    df = pd.DataFrame(all_data) #=== CONVERT TO DATAFRAME ===
     print(f"\nSuccessfully fetched {len(df)} total contribution records.")
     return df
 
@@ -123,22 +127,21 @@ def clean_and_prepare(df_raw):
     return df_final
 
 
-def main():
+def main(): # Main interactive function
     print("=== Interactive FEC Campaign Finance Explorer ===\n")
-
+# === SEARCH FOR COMMITTEE ===
     committee_id = search_committees()
     if not committee_id:
         print("Goodbye!")
         return
-
+# === FETCH ALL CONTRIBUTIONS ===
     df_raw = fetch_all_contributions(committee_id)
     if df_raw.empty:
         print("Nothing to save. Exiting.")
         return
-
+# == CLEAN AND PREPARE DATA ===
     df_final = clean_and_prepare(df_raw)
-
-    # Save to CSV (always nice to have locally)
+# == SAVE RESULTS ===
     filename = f"fec_contributions_{committee_id}.csv"
     df_final.to_csv(filename, index=False)
     print(f"\nSaved local copy: {filename}")
@@ -154,6 +157,6 @@ def main():
 
     print("\nAll done! 🎉")
 
-
+# === RUN MAIN FUNCTION ===
 if __name__ == "__main__":
     main()

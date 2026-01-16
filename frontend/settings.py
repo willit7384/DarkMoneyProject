@@ -1,3 +1,5 @@
+"""Used to hide sensitive settings like DB credentials"""
+
 # config/settings.py   (or just settings.py)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
